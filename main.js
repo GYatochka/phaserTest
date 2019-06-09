@@ -1,6 +1,12 @@
-let SCORE = 0;
-let TIME = 30;
+let isMuted = false;
+let button;
+let score = 0;
+let time = 30;
 let game;
+let music;
+let selectMus;
+let killGem;
+let scoreText;
 let gameOptions = {
     gemSize: 100,
     swapSpeed: 200,
@@ -19,6 +25,9 @@ window.onload = function(){
         scene : playGame,
         backgroundColor: 0x222222 
     }
+    music = new AudioContext();
+    selectMus = new AudioContext();
+    killGem = new AudioContext();
     game = new Phaser.Game(gameConfig);
     window.focus();
     resize();
@@ -26,64 +35,40 @@ window.onload = function(){
 };
 
 class playGame extends Phaser.Scene{
+    
     constructor(){
         super("PlayGame")
     };
     
     preload(){
-        this.load.image("red", "assets/images/game/gem-01.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("blue", "assets/images/game/gem-02.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("green", "assets/images/game/gem-03.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("tier", "assets/images/game/gem-04.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("yellow", "assets/images/game/gem-05.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("pink", "assets/images/game/gem-06.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        }); this.load.image("multi", "assets/images/game/gem-07.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("cross", "assets/images/game/gem-08.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("vertical", "images/game/gem-09.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("horizontal", "images/game/gem-10.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("time", "images/game/gem-11.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("double", "images/game/gem-12.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
-        this.load.image("gShadow", "images/game/shadow.png",{
-            frameWidth: gameOptions.gemSize,
-            frameHeight: gameOptions.gemSize
-        });
+
+        this.load.image("background", "assets/images/backgrounds/background.jpg"); 
+        this.load.image("red", "assets/images/game/gem-01.png");
+        this.load.image("blue", "assets/images/game/gem-02.png");
+        this.load.image("green", "assets/images/game/gem-03.png");
+        this.load.image("tier", "assets/images/game/gem-04.png");
+        this.load.image("yellow", "assets/images/game/gem-05.png");
+        this.load.image("pink", "assets/images/game/gem-06.png");
+        this.load.audio("bgMusic", "assets/audio/background.mp3");
+        this.load.audio("kill", "assets/audio/kill.mp3");
+        this.load.audio("select", "assets/audio/select-1.mp3");
+
+       /*  this.load.image("multi", "assets/images/game/gem-07.png");
+        this.load.image("cross", "assets/images/game/gem-08.png");
+
+        this.load.image("vertical", "images/game/gem-09.png");
+        this.load.image("horizontal", "images/game/gem-10.png");
+        this.load.image("time", "images/game/gem-11.png");
+        this.load.image("double", "images/game/gem-12.png");
+        this.load.image("gShadow", "images/game/shadow.png");*/
     };
+    
     create(){
+        this.background = this.add.tileSprite(0, 0, 900, 900, "background");
+        
+        this.background.setOrigin(0, 0);
+        if(isMuted)
+        {music = this.sound.play("bgMusic", {loop:true});}
         this.match3 = new Match3({
             rows: 8,
             columns: 7,
@@ -95,13 +80,20 @@ class playGame extends Phaser.Scene{
         this.drawField();
         this.input.on("pointerdown", this.gemSelect, this);
     }
+    
     drawField(){
         this.poolArray = [];
+        scoreText = this.add.text(20, 20, `Score: ${score}`, {
+            font: "25px Arial",
+            fill: "black",
+            textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
+          });
+
         for(let i = 0; i < this.match3.getRows(); i ++){
             for(let j = 0; j < this.match3.getColumns(); j ++){
                 let gemX = gameOptions.boardOffset.x + gameOptions.gemSize * j + gameOptions.gemSize / 2;
                 let gemY = gameOptions.boardOffset.y + gameOptions.gemSize * i + gameOptions.gemSize / 2
-                let gem = this.add.sprite(gemX, gemY, "gems", this.match3.valueAt(i, j));
+                let gem = this.add.sprite(gemX, gemY, "yellow", this.match3.valueAt(i, j));
                 this.match3.setCustomData(i, j, gem);
             }
         }
@@ -350,6 +342,7 @@ class Match3{
             row: row,
             column: column
         }
+        selectMus = game.sound.play("select");
     }
 
     // deleselects any item
@@ -405,6 +398,10 @@ class Match3{
     // removes all items forming a match
     removeMatches(){
         let matches = this.getMatchList();
+        score += 10 * matches.length;
+        scoreText.setText(`Score: ${score}`)
+        console.log("score: " + score);
+        killGem = game.sound.play("kill");
         matches.forEach(function(item){
             this.setEmpty(item.row, item.column)
         }.bind(this))
@@ -491,3 +488,5 @@ function resize() {
         canvas.style.height = windowHeight + "px";
     }
 }
+
+
