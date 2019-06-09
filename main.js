@@ -33,9 +33,10 @@ window.onload = function(){
     resize();
     window.addEventListener("resize", resize, false);
 };
+let donuts = ["red","blue","green","tier",'yellow',"pink"];
 
 class playGame extends Phaser.Scene{
-    
+   
     constructor(){
         super("PlayGame")
     };
@@ -93,7 +94,7 @@ class playGame extends Phaser.Scene{
             for(let j = 0; j < this.match3.getColumns(); j ++){
                 let gemX = gameOptions.boardOffset.x + gameOptions.gemSize * j + gameOptions.gemSize / 2;
                 let gemY = gameOptions.boardOffset.y + gameOptions.gemSize * i + gameOptions.gemSize / 2
-                let gem = this.add.sprite(gemX, gemY, "yellow", this.match3.valueAt(i, j));
+                let gem = this.add.sprite(gemX, gemY, donuts[this.match3.valueAt(i, j)]);
                 this.match3.setCustomData(i, j, gem);
             }
         }
@@ -208,7 +209,8 @@ class playGame extends Phaser.Scene{
             sprite.alpha = 1;
             sprite.y = gameOptions.boardOffset.y + gameOptions.gemSize * (movement.row - movement.deltaRow + 1) - gameOptions.gemSize / 2;
             sprite.x = gameOptions.boardOffset.x + gameOptions.gemSize * movement.column + gameOptions.gemSize / 2,
-            sprite.setFrame(this.match3.valueAt(movement.row, movement.column));
+            sprite.image = donuts[this.match3.valueAt(movement.row, movement.column)];
+            sprite.value = this.match3.valueAt(movement.row, movement.column);
             this.match3.setCustomData(movement.row, movement.column, sprite);
             this.tweens.add({
                 targets: sprite,
