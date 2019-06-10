@@ -1,3 +1,4 @@
+import 'phaser';
 let isMuted = false;
 let button;
 let score = 0;
@@ -7,6 +8,7 @@ let music;
 let selectMus;
 let killGem;
 let scoreText;
+
 let gameOptions = {
     gemSize: 100,
     swapSpeed: 200,
@@ -22,7 +24,7 @@ window.onload = function(){
     let gameConfig = {
         width: 900,
         heigth: 900,
-        scene : playGame,
+        scene : mainMenu, 
         backgroundColor: 0x222222 
     }
     music = new AudioContext();
@@ -34,6 +36,28 @@ window.onload = function(){
     window.addEventListener("resize", resize, false);
 };
 let donuts = ["red","blue","green","tier",'yellow',"pink"];
+
+class mainMenu extends Phaser.Scene{
+    constructor(){
+        super("Menu")
+    };
+    preload(){
+
+        this.load.image("background", "assets/images/backgrounds/background.jpg");
+        this.load.image("play", "assets/btn-play.png");
+        this.load.image("logo", "assets/donuts_logo.png");
+        this.load.image("donut", "assets/donut.png");
+        this.load.audio("bgMusic", "assets/audio/background.mp3");
+    }
+
+    create(){
+        this.background = this.add.tileSprite(0, 0, 900, 900, "background");
+        music = this.sound.play("bgMusic", {loop:true});
+        this.add.sprite(400, 400, "play");
+        scene.add(playGame);
+    }
+
+}
 
 class playGame extends Phaser.Scene{
    
@@ -162,6 +186,7 @@ class playGame extends Phaser.Scene{
             })
         }.bind(this))
     }
+
     handleMatches(){
         let gemsToRemove = this.match3.getMatchList();
         let destroyed = 0;
@@ -202,15 +227,18 @@ class playGame extends Phaser.Scene{
                 }
             })
         }.bind(this));
+
         let replenishMovements = this.match3.replenishBoard();
+       
         replenishMovements.forEach(function(movement){
             moved ++;
             let sprite = this.poolArray.pop();
+            console.log(sprite);
+            console.log(movement);
             sprite.alpha = 1;
             sprite.y = gameOptions.boardOffset.y + gameOptions.gemSize * (movement.row - movement.deltaRow + 1) - gameOptions.gemSize / 2;
             sprite.x = gameOptions.boardOffset.x + gameOptions.gemSize * movement.column + gameOptions.gemSize / 2,
-            sprite.image = donuts[this.match3.valueAt(movement.row, movement.column)];
-            sprite.value = this.match3.valueAt(movement.row, movement.column);
+            sprite.image = donuts[movement.valueAt(movement.row, movement.column)];
             this.match3.setCustomData(movement.row, movement.column, sprite);
             this.tweens.add({
                 targets: sprite,
