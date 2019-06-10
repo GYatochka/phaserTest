@@ -1,12 +1,17 @@
 
 let isMuted = false;
+//array for picking color of donuts
+let donuts = ["red","blue","green","tier",'yellow',"pink"];
+
 let button;
 let score = 0;
 let time = 30;
 let game;
+// variables for music
 let music;
 let selectMus;
 let killGem;
+
 let scoreText;
 
 let gameOptions = {
@@ -24,7 +29,7 @@ window.onload = function(){
     let gameConfig = {
         width: 900,
         heigth: 900,
-        scene : playGame, 
+        scene : [mainMenu, playGame], 
         backgroundColor: 0x222222 
     }
     music = new AudioContext();
@@ -35,8 +40,8 @@ window.onload = function(){
     resize();
     window.addEventListener("resize", resize, false);
 };
-let donuts = ["red","blue","green","tier",'yellow',"pink"];
 
+//main screen scene
 class mainMenu extends Phaser.Scene{
     constructor(){
         super("Menu")
@@ -44,21 +49,24 @@ class mainMenu extends Phaser.Scene{
     preload(){
 
         this.load.image("background", "assets/images/backgrounds/background.jpg");
-        this.load.image("play", "assets/btn-play.png");
-        this.load.image("logo", "assets/donuts_logo.png");
-        this.load.image("donut", "assets/donut.png");
+        this.load.image("play", "assets/images/btn-play.png");
+        this.load.image("logo", "assets/images/donuts_logo.png");
+        this.load.image("donut", "assets/images/donut.png");
         this.load.audio("bgMusic", "assets/audio/background.mp3");
     }
 
     create(){
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
+        this.background.setOrigin(0, 0);
         music = this.sound.play("bgMusic", {loop:true});
-        this.add.sprite(400, 400, "play");
-        scene.add(playGame);
+        this.add.image(450, 200, "logo");
+        button = this.add.sprite(450, 450, "play").setInteractive();
+        button.on("pointerdown", ()=> this.scene.start("PlayGame"), this);
+       
     }
-
 }
 
+// game scene 
 class playGame extends Phaser.Scene{
    
     constructor(){
