@@ -1,4 +1,4 @@
-import 'phaser';
+
 let isMuted = false;
 let button;
 let score = 0;
