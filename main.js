@@ -24,7 +24,7 @@ window.onload = function(){
     let gameConfig = {
         width: 900,
         heigth: 900,
-        scene : mainMenu, 
+        scene : playGame, 
         backgroundColor: 0x222222 
     }
     music = new AudioContext();
@@ -51,6 +51,8 @@ class mainMenu extends Phaser.Scene{
     }
 
     create(){
+        let cache = Phaser.CacheManager(game);
+        cache.destroy();
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
         music = this.sound.play("bgMusic", {loop:true});
         this.add.sprite(400, 400, "play");
@@ -66,7 +68,6 @@ class playGame extends Phaser.Scene{
     };
     
     preload(){
-
         this.load.image("background", "assets/images/backgrounds/background.jpg"); 
         this.load.image("red", "assets/images/game/gem-01.png");
         this.load.image("blue", "assets/images/game/gem-02.png");
@@ -95,7 +96,7 @@ class playGame extends Phaser.Scene{
         if(isMuted)
         {music = this.sound.play("bgMusic", {loop:true});}
         this.match3 = new Match3({
-            rows: 8,
+            rows: 7,
             columns: 7,
             items: 6
         });
@@ -233,12 +234,10 @@ class playGame extends Phaser.Scene{
         replenishMovements.forEach(function(movement){
             moved ++;
             let sprite = this.poolArray.pop();
-            console.log(sprite);
-            console.log(movement);
             sprite.alpha = 1;
             sprite.y = gameOptions.boardOffset.y + gameOptions.gemSize * (movement.row - movement.deltaRow + 1) - gameOptions.gemSize / 2;
             sprite.x = gameOptions.boardOffset.x + gameOptions.gemSize * movement.column + gameOptions.gemSize / 2,
-            sprite.image = donuts[movement.valueAt(movement.row, movement.column)];
+            sprite.setTexture(donuts[this.match3.valueAt(movement.row, movement.column)]);
             this.match3.setCustomData(movement.row, movement.column, sprite);
             this.tweens.add({
                 targets: sprite,
