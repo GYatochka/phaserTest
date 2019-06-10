@@ -51,8 +51,6 @@ class mainMenu extends Phaser.Scene{
     }
 
     create(){
-        let cache = Phaser.CacheManager(game);
-        cache.destroy();
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
         music = this.sound.play("bgMusic", {loop:true});
         this.add.sprite(400, 400, "play");
