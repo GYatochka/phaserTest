@@ -1,11 +1,10 @@
 
-let isMuted = false;
+let isMuted = true;
 //array for picking color of donuts
 let donuts = ["red","blue","green","tier",'yellow',"pink"];
 
 let button;
 let score = 0;
-let time = 30;
 let game;
 // variables for music
 let music;
@@ -21,14 +20,14 @@ let gameOptions = {
     destroySpeed: 200,
     boardOffset: {
         x: 100,
-        y: 50,
+        y: 70,
     }
 };
 
 window.onload = function(){
     let gameConfig = {
         width: 900,
-        heigth: 900,
+        heigth: 1000,
         scene : [mainMenu, playGame], 
         backgroundColor: 0x222222 
     }
@@ -50,6 +49,7 @@ class mainMenu extends Phaser.Scene{
 
         this.load.image("background", "assets/images/backgrounds/background.jpg");
         this.load.image("play", "assets/images/btn-play.png");
+        this.load.image("sfx", "assets/images/btn-sfx.png");
         this.load.image("logo", "assets/images/donuts_logo.png");
         this.load.image("donut", "assets/images/donut.png");
         this.load.audio("bgMusic", "assets/audio/background.mp3");
@@ -58,10 +58,16 @@ class mainMenu extends Phaser.Scene{
     create(){
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
         this.background.setOrigin(0, 0);
-        music = this.sound.play("bgMusic", {loop:true});
         this.add.image(450, 200, "logo");
+       
+        music = this.sound.add("bgMusic", {loop:true});
+        music.play();
         button = this.add.sprite(450, 450, "play").setInteractive();
+        
+        let sfxButton =  this.add.sprite(750, 650, "sfx").setInteractive();
+        sfxButton.setDisplaySize(100,100);
         button.on("pointerdown", ()=> this.scene.start("PlayGame"), this);
+        sfxButton.on("pointerdown", ()=> {isMuted = !isMuted; if(music.isPlaying){music.stop()} else {music.play()};})
        
     }
 }
@@ -74,15 +80,15 @@ class playGame extends Phaser.Scene{
     };
     
     preload(){
-        this.load.image("background", "assets/images/backgrounds/background.jpg"); 
+        //this.load.image("background", "assets/images/backgrounds/background.jpg"); 
         this.load.image("red", "assets/images/game/gem-01.png");
         this.load.image("blue", "assets/images/game/gem-02.png");
         this.load.image("green", "assets/images/game/gem-03.png");
         this.load.image("tier", "assets/images/game/gem-04.png");
         this.load.image("yellow", "assets/images/game/gem-05.png");
         this.load.image("pink", "assets/images/game/gem-06.png");
-        this.load.audio("bgMusic", "assets/audio/background.mp3");
         this.load.audio("kill", "assets/audio/kill.mp3");
+        this.load.image("scr", "assets/images/bg-score.png");
         this.load.audio("select", "assets/audio/select-1.mp3");
 
        /*  this.load.image("multi", "assets/images/game/gem-07.png");
@@ -97,27 +103,36 @@ class playGame extends Phaser.Scene{
     
     create(){
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
-        
         this.background.setOrigin(0, 0);
-        if(isMuted)
-        {music = this.sound.play("bgMusic", {loop:true});}
+       
         this.match3 = new Match3({
             rows: 7,
             columns: 7,
             items: 6
         });
+       // var timer = this.time.delayedCall({delay: 3000, callbackScope:this});
+       // console.log(this);
+        let sfxButton =  this.add.sprite(840, 50, "sfx").setInteractive();
+        sfxButton.setDisplaySize(50,50);
+        sfxButton.on("pointerdown", ()=> {isMuted = !isMuted; if(music.isPlaying){music.stop()} else {music.play()};})
+       // console.log(timer);
+       // console.log(timer.getProgress());
         this.match3.generateField();
+        
+        let scrBG =  this.add.sprite(80, 50, "scr");
+        scrBG.setDisplaySize(200,100);
+        
         this.canPick = true;
         this.dragging = false;
         this.drawField();
         this.input.on("pointerdown", this.gemSelect, this);
     }
-    
     drawField(){
+
         this.poolArray = [];
-        scoreText = this.add.text(20, 20, `Score: ${score}`, {
-            font: "25px Arial",
-            fill: "black",
+        scoreText = this.add.text(20, 30, `${score}`, {
+            font: "25px Fredoka One",
+            fill: "white",
             textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
           });
 
@@ -377,7 +392,7 @@ class Match3{
             row: row,
             column: column
         }
-        selectMus = game.sound.play("select");
+        if(isMuted){selectMus = game.sound.play("select");}
     }
 
     // deleselects any item
@@ -434,9 +449,8 @@ class Match3{
     removeMatches(){
         let matches = this.getMatchList();
         score += 10 * matches.length;
-        scoreText.setText(`Score: ${score}`)
-        console.log("score: " + score);
-        killGem = game.sound.play("kill");
+        scoreText.setText(`${score}`)
+       if(isMuted) {killGem = game.sound.play("kill");}
         matches.forEach(function(item){
             this.setEmpty(item.row, item.column)
         }.bind(this))
