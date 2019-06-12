@@ -355,7 +355,7 @@ class playGame extends Phaser.Scene{
 
     endOfMove(){
         if(score % 2 == 0){
-            seconds+=2;
+            seconds+=1;
         }
         if(this.match3.matchInBoard()){
             this.time.addEvent({
