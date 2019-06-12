@@ -4,7 +4,9 @@ let isMuted = true;
 let donuts = ["red","blue","green","tier",'yellow',"pink"];
 
 let button;
-let score = 0;
+let score;
+let timer;
+let seconds;
 let game;
 // variables for music
 let music;
@@ -28,7 +30,7 @@ window.onload = function(){
     let gameConfig = {
         width: 900,
         heigth: 1000,
-        scene : [mainMenu, playGame], 
+        scene : [mainMenu, playGame, gameOver], 
         backgroundColor: 0x222222 
     }
     music = new AudioContext();
@@ -72,6 +74,28 @@ class mainMenu extends Phaser.Scene{
     }
 }
 
+//gameover scene
+class gameOver extends Phaser.Scene{
+    constructor(){
+        super("GameOver");
+    }
+    preload(){
+        this.load.image("gameOver", "assets/images/text-timeup.png");
+    }
+    create(){
+        this.background = this.add.tileSprite(0, 0, 900, 900, "background");
+        this.background.setOrigin(0, 0);
+        this.add.text(300, 300,`Score: ${score}`,{
+        font: "72px Fredoka One",
+        fill: "white",
+        textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
+      });
+        this.add.image( 450, 200, "gameOver");
+        button = this.add.sprite(450, 500, "play").setInteractive();
+        button.on("pointerdown", ()=> this.scene.start("PlayGame"), this);
+    }
+}
+
 // game scene 
 class playGame extends Phaser.Scene{
    
@@ -102,6 +126,8 @@ class playGame extends Phaser.Scene{
     };
     
     create(){
+        score = 0;
+        seconds = 30;
         this.background = this.add.tileSprite(0, 0, 900, 900, "background");
         this.background.setOrigin(0, 0);
        
@@ -110,13 +136,18 @@ class playGame extends Phaser.Scene{
             columns: 7,
             items: 6
         });
-       // var timer = this.time.delayedCall({delay: 3000, callbackScope:this});
-       // console.log(this);
+        this.timerText = this.add.text(450, 20, `${seconds}`,  {
+            font: "48px Fredoka One",
+            fill: "white",
+            textShadow: "-1px 0 black, 0 1px black, 1px 0 black, 0 -1px black"
+          });
+        timer = this.time.addEvent({delay: 1000, callback: this.updateCounter, callbackScope: this, loop: true});
+        //timer.start();
+        console.log(seconds);
         let sfxButton =  this.add.sprite(840, 50, "sfx").setInteractive();
         sfxButton.setDisplaySize(50,50);
         sfxButton.on("pointerdown", ()=> {isMuted = !isMuted; if(music.isPlaying){music.stop()} else {music.play()};})
-       // console.log(timer);
-       // console.log(timer.getProgress());
+
         this.match3.generateField();
         
         let scrBG =  this.add.sprite(80, 50, "scr");
@@ -126,6 +157,20 @@ class playGame extends Phaser.Scene{
         this.dragging = false;
         this.drawField();
         this.input.on("pointerdown", this.gemSelect, this);
+    }
+    updateCounter() {
+        if(seconds > 0)
+       {
+        
+        this.timerText.setText(`${seconds}`)
+           seconds--;
+           
+           console.log(seconds);}
+       else {
+            timer.remove();
+            this.scene.start("GameOver")
+       }
+    
     }
     drawField(){
 
@@ -210,6 +255,7 @@ class playGame extends Phaser.Scene{
     }
 
     handleMatches(){
+
         let gemsToRemove = this.match3.getMatchList();
         let destroyed = 0;
         gemsToRemove.forEach(function(gem){
@@ -275,6 +321,9 @@ class playGame extends Phaser.Scene{
         }.bind(this))
     }
     endOfMove(){
+        if(score / 100 == 0){
+            seconds+=5;
+        }
         if(this.match3.matchInBoard()){
             this.time.addEvent({
                 delay: 250,
